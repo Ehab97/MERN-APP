@@ -75,3 +75,19 @@
   .user-item__info h3 {
     margin: 0;
   }
+  //auth
+  .authentication__header {
+    color: white;
+    text-align: center;
+  }
+  
+  .authentication {
+    width: 90%;
+    max-width: 25rem;
+    margin: 7rem auto !important;
+    text-align: center;
+  }
+  
+  .authentication form {
+    margin-bottom: 1rem;
+  }

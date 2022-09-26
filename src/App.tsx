@@ -1,13 +1,23 @@
-import { useState} from 'react'
+import { useState,useCallback} from 'react'
 import Routing from './routes/index';
+import { AuthContext } from './components/shared/context/auth.context';
 import './App.css'
 
 
 function App() {
-  const [count, setCount] = useState(0)
-  
+ const [isLoggedIn, setIsLoggedIn] = useState(false);
+ const login = useCallback(() => {
+    setIsLoggedIn(true);
+ }, []);
+ 
+ const logout = useCallback(() => {
+    setIsLoggedIn(false);
+  }, []);
+
   return (
-    <Routing />
+    <AuthContext.Provider value={{isLoggedIn, login, logout}}>
+        <Routing />
+    </AuthContext.Provider>
   )
 }
 
