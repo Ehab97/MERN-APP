@@ -18,7 +18,7 @@ interface RouteType {
 
 const Routing: React.FC = () => {
   const auth=React.useContext(AuthContext);
-  let routes: any = []
+  let routes:any = [];
   const {isLoggedIn}=auth;
   if(isLoggedIn) {
 
