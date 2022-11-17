@@ -5,7 +5,13 @@ import { User } from "./userInterfaces";
 import { NavLink } from "react-router-dom";
 import Card from "../shared/UIElements/Card";
 
-export const UsersItem: React.FC<User> = ({ name, id, image, placesCount }) => {
+export const UsersItem: React.FC<User> = ({
+  name,
+  id,
+  image,
+  places,
+  email,
+}) => {
   return (
     <li className="user-item">
       <Card className="user-item__content">
@@ -21,8 +27,9 @@ export const UsersItem: React.FC<User> = ({ name, id, image, placesCount }) => {
           </div>
           <div className="user-item__info">
             <h2 className="user-item__name">{name}</h2>
+            {/*<h2 className="user-item__name">{email}</h2>*/}
             <h3 className="user-item__places">
-              {placesCount} {placesCount !== 1 ? "places" : "place"}
+              {places?.length} {places?.length !== 1 ? "places" : "place"}
             </h3>
           </div>
         </NavLink>

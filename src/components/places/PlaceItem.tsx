@@ -32,7 +32,6 @@ const PlaceItem:React.FC<Place> = ({
         contentClass:'place-item__modal-content',
         footerClass:'place-item__modal-actions',
         footer:<Button onClick={closeMapHandler}>CLOSE</Button>,
-
     }
     const dataDeleteProps:any={
         show:showConfirm,
