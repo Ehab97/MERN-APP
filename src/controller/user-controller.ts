@@ -5,27 +5,13 @@ import { validationResult } from 'express-validator';
 import HttpError from './../models/http-error';
 import UserModel from '../models/user-schema';
 
-
-let DUMMY_USERS: User[] = [
-    {
-        id: 'u1',
-        name: 'Max Schwarz',
-        email: 'max@gmail.com',
-        password: 'testers'
-    },
-    {
-        id: 'u2',
-        name: 'Manu Lorenz',
-        email: 'manu@gmail.com',
-        password: 'testers'
-    }
-]
-
 const getAllUsers = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const users = await UserModel.find({}, '-password');
-        res.json({ users: users });
+        console.log('users', users);
+        res.status(200).json({ status:'success', data:{users: users} });
     } catch (err) {
+        console.log('err',err);
         return next(new HttpError('Could not find users', 500));
     }
 };
@@ -35,7 +21,7 @@ const getUserById = async (req: express.Request, res: express.Response, next: ex
     const userId = params.userId;
     try {
         const user = await UserModel.findById(userId, '-password');
-        res.json({ user: user });
+        res.status(200).json({ status:'success', data:{user: user} });
     } catch (err) {
         return next(new HttpError('Could not find user', 500));
     }
@@ -67,7 +53,7 @@ const userSignup = async (req: express.Request, res: express.Response, next: exp
     try {
         const user = new UserModel(createdUser);
         await user.save();
-        res.status(201).json({ msg: "Signed Up", user: createdUser });
+        res.status(201).json({ message: "Signed Up", status:'success', data:{user: createdUser} });
     } catch (err) {
         console.log(err);
         return next(new HttpError('Could not save user', 500));
@@ -87,8 +73,13 @@ const userLogin = async (req: express.Request, res: express.Response, next: expr
         return next(new HttpError('User is not exists', 422));
     }
     try {
+        //get user
         const user = await UserModel.findOne({ email: email, password: password });
-        res.json({ msg: 'Logged In ', user: user });
+        console.log('user', user, 'email', email, 'password', password);
+        if(!user) {
+            return next(new HttpError('Invalid credentials', 422));
+        }
+        res.status(200).json({ message: 'Logged In ',status:'success', data:{user: user} });
     } catch (err) {
         console.log(err);
         return next(new HttpError('Could not find user', 500));

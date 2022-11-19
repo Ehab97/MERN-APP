@@ -4,7 +4,7 @@ import placesRouter from './routes/places-routes';
 import usersRouter from './routes/users-routes';
 import HttpError from './models/http-error';
 import mongoose from 'mongoose';
-
+import morgan from 'morgan'
 //define constants
 const PORT:number        = process.env.PORT?+process.env.PORT: 5000;
 const HOSTNAME:string    = process.env.HOSTNAME || 'localhost';
@@ -16,6 +16,14 @@ const DB_NAME:string     = "places";
 const app = express();
 
 app.use(bodyParser.json());
+app.use(morgan('dev'));
+
+app.use((req, res, next)=>{
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+    next();
+})
 
 app.use('/api/places',placesRouter);  // =>     it runs only if the path starts with /api/places
 app.use('/api/users', usersRouter);   // =>     it runs only if the path starts with /api/users
@@ -26,13 +34,13 @@ app.use((req,res,next)=>{
    throw error;
 })
 //handle errors
-app.use((error:Error,req:express.Request,res:express.Response,next:express.NextFunction)=>{
+app.use((error:any,req:express.Request,res:express.Response,next:express.NextFunction)=>{
    
     if (res.headersSent) {
         return next(error)
       }
-      res.status(500)
-      res.json({ error })
+      res.status(error?.errorCode||500)
+      res.json({ message:error.message||'An unknown error occurred!' })
 })
 
 

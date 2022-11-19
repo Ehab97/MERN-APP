@@ -14,7 +14,7 @@ const getAllPlaces = (req: express.Request, res: express.Response, next: express
             console.log('err', err);
             return next(new HttpError('Could not find places', 500));
         }
-        res.json({ places: places });
+        res.json({ status:'success',data:{places: places} });
     })
 };
 
@@ -25,7 +25,7 @@ const getPlaceById = (req: express.Request, res: express.Response, next: express
         if (err) {
             return next(new HttpError('Could not find place', 500));
         }
-        res.json({ place: place });
+        res.json({ status:'success',data:{place: place} });
     })
 };
 
@@ -36,7 +36,7 @@ const getPlacesByUserId = (req: express.Request, res: express.Response, next: ex
         if (err) {
             return next(new HttpError('Could not find places', 500));
         }
-        res.json({ places: places });
+        res.json({status:'success',data:{ places: places} });
     })
 }
 const createNewPlace = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -90,7 +90,12 @@ const createNewPlace = async (req: express.Request, res: express.Response, next:
     user?.places?.push(place);
     //3 save user
     await user.save()
-    res.status(201).json({ place: createdPlace });
+    res.status(201).json({ 
+        status:'success',
+        data:{
+            place: createdPlace 
+        }
+    });
 }
 
 const updatePlaceById = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -107,7 +112,9 @@ const updatePlaceById = (req: express.Request, res: express.Response, next: expr
     PlaceModel
         .updateOne({ _id: placeId }, { title, description })
         .then((result) => {
-            res.status(200).json({ message: 'Updated place', result });
+            res.status(200).json({ status:'success',data:{
+                result
+            } });
         })
         .catch((err) => {
             let error = new HttpError('Could not update place', 500);
@@ -129,7 +136,7 @@ const deletePlaceById = async(req: express.Request, res: express.Response, next:
     }    
     // await UserModel.updateMany({}, { $pull: { 'users.places': placeId } })
     await UserModel.updateMany({}, { $pull: { places: placeId } });
-    res.status(200).json({ message: 'Deleted place' });
+    res.status(200).json({status:'success', message: 'Deleted place' });
 }
 
 export { getPlaceById, getPlacesByUserId, createNewPlace, deletePlaceById, updatePlaceById, getAllPlaces };

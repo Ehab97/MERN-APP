@@ -19,37 +19,13 @@ const http_error_1 = __importDefault(require("../models/http-error"));
 const location_1 = __importDefault(require("../utils/location"));
 const place_schema_1 = __importDefault(require("../models/place-schema"));
 const user_schema_1 = __importDefault(require("../models/user-schema"));
-// let DUMMY_PLACES: Place[] = [
-//     {
-//         id: 'p1',
-//         title: 'Empire State Building',
-//         description: 'One of the most famous sky scrapers in the world!',
-//         location: {
-//             lat: 40.7484474,
-//             lng: -73.9871516
-//         },
-//         address: '20 W 34th St, New York, NY 10001',
-//         creator: 'u1'
-//     },
-//     {
-//         id: 'p2',
-//         title: 'Empire State Building',
-//         description: 'One of the most famous sky scrapers in the world!',
-//         location: {
-//             lat: 40.7484474,
-//             lng: -73.9871516
-//         },
-//         address: '20 W 34th St, New York, NY 10001',
-//         creator: 'u2'
-//     }
-// ]
 const getAllPlaces = (req, res, next) => {
     place_schema_1.default.find({}, (err, places) => {
         if (err) {
             console.log('err', err);
             return next(new http_error_1.default('Could not find places', 500));
         }
-        res.json({ places: places });
+        res.json({ status: 'success', data: { places: places } });
     });
 };
 exports.getAllPlaces = getAllPlaces;
@@ -60,7 +36,7 @@ const getPlaceById = (req, res, next) => {
         if (err) {
             return next(new http_error_1.default('Could not find place', 500));
         }
-        res.json({ place: place });
+        res.json({ status: 'success', data: { place: place } });
     });
 };
 exports.getPlaceById = getPlaceById;
@@ -71,7 +47,7 @@ const getPlacesByUserId = (req, res, next) => {
         if (err) {
             return next(new http_error_1.default('Could not find places', 500));
         }
-        res.json({ places: places });
+        res.json({ status: 'success', data: { places: places } });
     });
 };
 exports.getPlacesByUserId = getPlacesByUserId;
@@ -130,7 +106,12 @@ const createNewPlace = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     (_a = user === null || user === void 0 ? void 0 : user.places) === null || _a === void 0 ? void 0 : _a.push(place);
     //3 save user
     yield user.save();
-    res.status(201).json({ place: createdPlace });
+    res.status(201).json({
+        status: 'success',
+        data: {
+            place: createdPlace
+        }
+    });
 });
 exports.createNewPlace = createNewPlace;
 const updatePlaceById = (req, res, next) => {
@@ -147,7 +128,9 @@ const updatePlaceById = (req, res, next) => {
     place_schema_1.default
         .updateOne({ _id: placeId }, { title, description })
         .then((result) => {
-        res.status(200).json({ message: 'Updated place', result });
+        res.status(200).json({ status: 'success', data: {
+                result
+            } });
     })
         .catch((err) => {
         let error = new http_error_1.default('Could not update place', 500);
@@ -170,6 +153,6 @@ const deletePlaceById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
     // await UserModel.updateMany({}, { $pull: { 'users.places': placeId } })
     yield user_schema_1.default.updateMany({}, { $pull: { places: placeId } });
-    res.status(200).json({ message: 'Deleted place' });
+    res.status(200).json({ status: 'success', message: 'Deleted place' });
 });
 exports.deletePlaceById = deletePlaceById;

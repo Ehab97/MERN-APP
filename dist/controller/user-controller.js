@@ -16,26 +16,14 @@ exports.userLogin = exports.userSignup = exports.getUserById = exports.getAllUse
 const express_validator_1 = require("express-validator");
 const http_error_1 = __importDefault(require("./../models/http-error"));
 const user_schema_1 = __importDefault(require("../models/user-schema"));
-let DUMMY_USERS = [
-    {
-        id: 'u1',
-        name: 'Max Schwarz',
-        email: 'max@gmail.com',
-        password: 'testers'
-    },
-    {
-        id: 'u2',
-        name: 'Manu Lorenz',
-        email: 'manu@gmail.com',
-        password: 'testers'
-    }
-];
 const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield user_schema_1.default.find({}, '-password');
-        res.json({ users: users });
+        console.log('users', users);
+        res.status(200).json({ status: 'success', data: { users: users } });
     }
     catch (err) {
+        console.log('err', err);
         return next(new http_error_1.default('Could not find users', 500));
     }
 });
@@ -45,7 +33,7 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     const userId = params.userId;
     try {
         const user = yield user_schema_1.default.findById(userId, '-password');
-        res.json({ user: user });
+        res.status(200).json({ status: 'success', data: { user: user } });
     }
     catch (err) {
         return next(new http_error_1.default('Could not find user', 500));
@@ -78,7 +66,7 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         const user = new user_schema_1.default(createdUser);
         yield user.save();
-        res.status(201).json({ msg: "Signed Up", user: createdUser });
+        res.status(201).json({ message: "Signed Up", status: 'success', data: { user: createdUser } });
     }
     catch (err) {
         console.log(err);
@@ -99,8 +87,13 @@ const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         return next(new http_error_1.default('User is not exists', 422));
     }
     try {
+        //get user
         const user = yield user_schema_1.default.findOne({ email: email, password: password });
-        res.json({ msg: 'Logged In ', user: user });
+        console.log('user', user, 'email', email, 'password', password);
+        if (!user) {
+            return next(new http_error_1.default('Invalid credentials', 422));
+        }
+        res.status(200).json({ message: 'Logged In ', status: 'success', data: { user: user } });
     }
     catch (err) {
         console.log(err);
