@@ -10,6 +10,8 @@ const users_routes_1 = __importDefault(require("./routes/users-routes"));
 const http_error_1 = __importDefault(require("./models/http-error"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const morgan_1 = __importDefault(require("morgan"));
+const delete_image_1 = require("./utils/delete-image");
+const path_1 = __importDefault(require("path"));
 //define constants
 const PORT = process.env.PORT ? +process.env.PORT : 5000;
 const HOSTNAME = process.env.HOSTNAME || 'localhost';
@@ -18,6 +20,7 @@ const DB_NAME = "places";
 //end of constants
 const app = (0, express_1.default)();
 app.use(body_parser_1.default.json());
+app.use('/uploads/images', express_1.default.static(path_1.default.join('uploads', 'images')));
 app.use((0, morgan_1.default)('dev'));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -34,6 +37,7 @@ app.use((req, res, next) => {
 });
 //handle errors
 app.use((error, req, res, next) => {
+    (0, delete_image_1.deleteImage)(req);
     if (res.headersSent) {
         return next(error);
     }

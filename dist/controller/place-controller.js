@@ -19,6 +19,7 @@ const http_error_1 = __importDefault(require("../models/http-error"));
 const location_1 = __importDefault(require("../utils/location"));
 const place_schema_1 = __importDefault(require("../models/place-schema"));
 const user_schema_1 = __importDefault(require("../models/user-schema"));
+const fs_1 = __importDefault(require("fs"));
 const getAllPlaces = (req, res, next) => {
     place_schema_1.default.find({}, (err, places) => {
         if (err) {
@@ -52,15 +53,17 @@ const getPlacesByUserId = (req, res, next) => {
 };
 exports.getPlacesByUserId = getPlacesByUserId;
 const createNewPlace = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     const errors = (0, express_validator_1.validationResult)(req);
     let error;
+    console.log('errors', errors);
     if (!errors.isEmpty()) {
         error = new http_error_1.default('Invalid inputs passed, please check your data.', 422);
         return next(error);
     }
     const body = req.body;
-    const { title, description, location, address, creator, imageUrl } = body;
+    console.log('body', body);
+    const { title, description, location, address, creator, image } = body;
     const id = crypto_1.default.randomBytes(16).toString("hex");
     console.log(body);
     let coordinates;
@@ -77,7 +80,7 @@ const createNewPlace = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         location: coordinates,
         address,
         creator,
-        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1542731244-7c7b2f7f5f4c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80'
+        image: (_a = req === null || req === void 0 ? void 0 : req.file) === null || _a === void 0 ? void 0 : _a.path,
     };
     console.log(createdPlace);
     let user;
@@ -100,10 +103,11 @@ const createNewPlace = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (err) {
         let error = new http_error_1.default('error in create place', 500);
+        console.log('err', err);
         return next(error);
     }
     //2 add place to user
-    (_a = user === null || user === void 0 ? void 0 : user.places) === null || _a === void 0 ? void 0 : _a.push(place);
+    (_b = user === null || user === void 0 ? void 0 : user.places) === null || _b === void 0 ? void 0 : _b.push(place);
     //3 save user
     yield user.save();
     res.status(201).json({
@@ -141,7 +145,14 @@ exports.updatePlaceById = updatePlaceById;
 const deletePlaceById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const params = req.params;
     const placeId = params.placeId;
+    let place;
     console.log(placeId);
+    place = yield place_schema_1.default.findById(placeId);
+    if (!place) {
+        let error = new http_error_1.default('Could not find place', 500);
+        return next(error);
+    }
+    const imagePath = place.image;
     // let place;
     try {
         // place = await PlaceModel.findById(placeId).populate('creator');
@@ -153,6 +164,9 @@ const deletePlaceById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
     // await UserModel.updateMany({}, { $pull: { 'users.places': placeId } })
     yield user_schema_1.default.updateMany({}, { $pull: { places: placeId } });
+    fs_1.default.unlink(imagePath, (err) => {
+        console.log(err);
+    });
     res.status(200).json({ status: 'success', message: 'Deleted place' });
 });
 exports.deletePlaceById = deletePlaceById;

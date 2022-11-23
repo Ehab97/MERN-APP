@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { check } from 'express-validator'
-import { getAllUsers, getUserById,userSignup,userLogin } from '../controller/user-controller';
-
+import { getAllUsers, getUserById, userSignup, userLogin } from '../controller/user-controller';
+import fileUpload from '../middleware/file-upload';
 
 
 //define routes
@@ -11,19 +11,20 @@ const router = Router();
 router.get('/:userId', getUserById);
 //user signup
 router.post('/signup',
-            [
-                check('name').isLength({min:3}),
-                check('email').normalizeEmail().isEmail(),
-                check('password').isLength({min:6})
-            ]
-            ,userSignup);
+    fileUpload.single('image'),
+  [
+    check('name').isLength({ min: 3 }),
+    check('email').normalizeEmail().isEmail(),
+    check('password').isLength({ min: 6 })
+  ]
+  , userSignup);
 //user login
 router.post('/login',
-                   [
-                    check('email').normalizeEmail().isEmail(),
-                    check('password').isLength({min:6})
-                  ]   
-                ,userLogin);
+  [
+    check('email').normalizeEmail().isEmail(),
+    check('password').isLength({ min: 6 })
+  ]
+  , userLogin);
 //get all users
 router.get('/', getAllUsers);
 

@@ -41,10 +41,12 @@ const getUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.getUserById = getUserById;
 const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         console.log(errors);
-        throw new http_error_1.default('Invalid inputs passed, please check your data.', 422);
+        // throw new HttpError('Invalid inputs passed, please check your data.', 422);
+        return next(new http_error_1.default('Invalid inputs passed, please check your data.', 422));
     }
     const body = req.body;
     const { name, email, password, image } = body;
@@ -53,7 +55,7 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         name,
         email,
         password,
-        image: image || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+        image: (_a = req === null || req === void 0 ? void 0 : req.file) === null || _a === void 0 ? void 0 : _a.path,
         places: []
     };
     console.log('createdUser', createdUser);
@@ -66,6 +68,7 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         const user = new user_schema_1.default(createdUser);
         yield user.save();
+        // deleteImage(req);
         res.status(201).json({ message: "Signed Up", status: 'success', data: { user: createdUser } });
     }
     catch (err) {

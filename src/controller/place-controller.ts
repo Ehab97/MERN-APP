@@ -7,6 +7,7 @@ import { RequestParams, Place } from '../models/place';
 import getCoordsForAddress from '../utils/location';
 import PlaceModel from '../models/place-schema';
 import UserModel from '../models/user-schema';
+import fs from 'fs';
 
 const getAllPlaces = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     PlaceModel.find({}, (err: Error, places: [Place]) => {
@@ -42,12 +43,14 @@ const getPlacesByUserId = (req: express.Request, res: express.Response, next: ex
 const createNewPlace = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const errors = validationResult(req);
     let error;
+    console.log('errors', errors);
     if (!errors.isEmpty()) {
         error = new HttpError('Invalid inputs passed, please check your data.', 422);
         return next(error);
     }
     const body = req.body as Place;
-    const { title, description, location, address, creator, imageUrl } = body;
+    console.log('body',body);
+    const { title, description, location, address, creator, image } = body;
     const id = crypto.randomBytes(16).toString("hex");
     console.log(body)
     let coordinates;
@@ -63,7 +66,7 @@ const createNewPlace = async (req: express.Request, res: express.Response, next:
         location: coordinates,
         address,
         creator,
-        imageUrl: imageUrl || 'https://images.unsplash.com/photo-1542731244-7c7b2f7f5f4c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1050&q=80'
+        image: req?.file?.path,
     };
     console.log(createdPlace);
     let user;
@@ -84,6 +87,7 @@ const createNewPlace = async (req: express.Request, res: express.Response, next:
         await place.save();
     }catch(err){
         let error = new HttpError('error in create place', 500);
+        console.log('err', err);
         return next(error);
     }
     //2 add place to user
@@ -123,9 +127,16 @@ const updatePlaceById = (req: express.Request, res: express.Response, next: expr
 }
 
 const deletePlaceById = async(req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const params = req.params as RequestParams;
+    const params  = req.params as RequestParams;
     const placeId = params.placeId;
+    let place;
     console.log(placeId);
+    place = await PlaceModel.findById(placeId)
+    if(!place){
+        let error = new HttpError('Could not find place', 500);
+        return next(error);
+    }
+    const imagePath:any = place.image;
     // let place;
     try {
         // place = await PlaceModel.findById(placeId).populate('creator');
@@ -136,6 +147,9 @@ const deletePlaceById = async(req: express.Request, res: express.Response, next:
     }    
     // await UserModel.updateMany({}, { $pull: { 'users.places': placeId } })
     await UserModel.updateMany({}, { $pull: { places: placeId } });
+   fs.unlink(imagePath,(err:any)=>{
+         console.log(err);
+   });
     res.status(200).json({status:'success', message: 'Deleted place' });
 }
 

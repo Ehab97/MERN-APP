@@ -4,7 +4,8 @@ import { User, RequestParams } from '../models/user';
 import { validationResult } from 'express-validator';
 import HttpError from './../models/http-error';
 import UserModel from '../models/user-schema';
-
+import fs from 'fs'
+import { deleteImage } from '../utils/delete-image';
 const getAllUsers = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const users = await UserModel.find({}, '-password');
@@ -31,7 +32,10 @@ const userSignup = async (req: express.Request, res: express.Response, next: exp
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         console.log(errors);
-        throw new HttpError('Invalid inputs passed, please check your data.', 422);
+        // throw new HttpError('Invalid inputs passed, please check your data.', 422);
+        return next(
+            new HttpError('Invalid inputs passed, please check your data.', 422)
+        );
     }
     const body = req.body as User;
     const { name, email, password, image } = body;
@@ -40,7 +44,7 @@ const userSignup = async (req: express.Request, res: express.Response, next: exp
         name,
         email,
         password,
-        image: image || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+        image:req?.file?.path ,
         places: []
     }
     console.log('createdUser', createdUser);
@@ -53,6 +57,7 @@ const userSignup = async (req: express.Request, res: express.Response, next: exp
     try {
         const user = new UserModel(createdUser);
         await user.save();
+        // deleteImage(req);
         res.status(201).json({ message: "Signed Up", status:'success', data:{user: createdUser} });
     } catch (err) {
         console.log(err);

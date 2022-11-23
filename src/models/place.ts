@@ -2,7 +2,7 @@ export interface Place {
     id?: string;
     title?: string;
     description?: string;
-    imageUrl?: string;
+    image?: string;
     address?: string;
     location?: {
         lat: number;
