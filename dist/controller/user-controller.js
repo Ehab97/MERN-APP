@@ -16,6 +16,8 @@ exports.userLogin = exports.userSignup = exports.getUserById = exports.getAllUse
 const express_validator_1 = require("express-validator");
 const http_error_1 = __importDefault(require("./../models/http-error"));
 const user_schema_1 = __importDefault(require("../models/user-schema"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield user_schema_1.default.find({}, '-password');
@@ -49,7 +51,7 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         return next(new http_error_1.default('Invalid inputs passed, please check your data.', 422));
     }
     const body = req.body;
-    const { name, email, password, image } = body;
+    const { name, email, password } = body;
     console.log('body', body);
     const createdUser = {
         name,
@@ -65,15 +67,35 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         return next(new http_error_1.default('User already exists', 422));
     }
     console.log('isUserExists', isUserExists);
+    let hashPassword;
     try {
-        const user = new user_schema_1.default(createdUser);
+        hashPassword = yield bcryptjs_1.default.hash(password, 12);
+    }
+    catch (e) {
+        let error = new http_error_1.default('Could not create user, please try again.', 500);
+        return next(error);
+    }
+    createdUser['password'] = hashPassword;
+    let user;
+    try {
+        user = new user_schema_1.default(createdUser);
         yield user.save();
         // deleteImage(req);
-        res.status(201).json({ message: "Signed Up", status: 'success', data: { user: createdUser } });
     }
     catch (err) {
         console.log(err);
         return next(new http_error_1.default('Could not save user', 500));
+    }
+    let token;
+    try {
+        token = yield jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, 'supersecret_dont_share', { expiresIn: '1h' });
+        res.status(201).json({
+            message: "Signed Up", status: 'success',
+            data: { user: user.toObject({ getters: true }), token }
+        });
+    }
+    catch (e) {
+        return next(new http_error_1.default('Could not sign up, please try again.', 500));
     }
 });
 exports.userSignup = userSignup;
@@ -89,18 +111,43 @@ const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     if (!isUserExists) {
         return next(new http_error_1.default('User is not exists', 422));
     }
+    let isValidPassword = false;
+    try {
+        isValidPassword = yield bcryptjs_1.default.compare(password, isUserExists.password);
+    }
+    catch (e) {
+        return next(new http_error_1.default('Could not login, please check your credentials and try again.', 500));
+    }
+    if (!isValidPassword) {
+        return next(new http_error_1.default('Invalid credentials, could not log you in.', 401));
+    }
+    let user;
     try {
         //get user
-        const user = yield user_schema_1.default.findOne({ email: email, password: password });
+        user = yield user_schema_1.default.findOne({ email: email, password: password });
         console.log('user', user, 'email', email, 'password', password);
         if (!user) {
             return next(new http_error_1.default('Invalid credentials', 422));
         }
-        res.status(200).json({ message: 'Logged In ', status: 'success', data: { user: user } });
+        res.status(200).json({
+            message: 'Logged In ', status: 'success',
+            data: { user: user.toObject({ getters: true }) }
+        });
     }
     catch (err) {
         console.log(err);
         return next(new http_error_1.default('Could not find user', 500));
+    }
+    let token;
+    try {
+        token = yield jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, 'supersecret_dont_share', { expiresIn: '1h' });
+        res.status(200).json({
+            message: 'Logged In ', status: 'success',
+            data: { user: user.toObject({ getters: true }), token }
+        });
+    }
+    catch (e) {
+        return next(new http_error_1.default('Could not login, please try again.', 500));
     }
 });
 exports.userLogin = userLogin;
