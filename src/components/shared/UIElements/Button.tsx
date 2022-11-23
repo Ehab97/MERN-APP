@@ -1,23 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
 
-import './Button.css';
+import "./Button.css";
 
-type ButtonType='submit'|'button'|'reset'|undefined;
+type ButtonType = "submit" | "button" | "reset" | undefined;
 
-interface ButtonProps{
-  href?:string;
-  to?:string;
-  inverse?:boolean;
-  size?:string;
-  children?:React.ReactNode;
-  danger?:boolean;
-  type?:ButtonType;
-  disabled?:boolean;
-  onClick?:()=>void
+interface ButtonProps {
+  href?: string;
+  to?: string;
+  inverse?: boolean;
+  size?: string;
+  children?: React.ReactNode;
+  danger?: boolean;
+  type?: ButtonType;
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
-const Button:React.FC<ButtonProps>  = ({
+const Button: React.FC<ButtonProps> = ({
   href,
   to,
   inverse,
@@ -26,14 +26,14 @@ const Button:React.FC<ButtonProps>  = ({
   danger,
   type,
   disabled,
-  onClick
+  onClick,
 }) => {
   if (href) {
     return (
       <a
-        className={`button button--${size || 'default'} 
-                    ${inverse &&'button--inverse'} 
-                    ${danger && 'button--danger'}`}
+        className={`button button--${size || "default"} 
+                    ${inverse ? "button--inverse" : ""} 
+                    ${danger ? "button--danger" : ""}`}
         href={href}
       >
         {children}
@@ -45,8 +45,9 @@ const Button:React.FC<ButtonProps>  = ({
       <Link
         to={to}
         // exact={exact}
-        className={`button button--${size || 'default'} ${inverse &&
-          'button--inverse'} ${danger && 'button--danger'}`}
+        className={`button button--${size || "default"} ${
+          inverse ? "button--inverse" : ""
+        } ${danger ? "button--danger" : ""}`}
       >
         {children}
       </Link>
@@ -54,8 +55,9 @@ const Button:React.FC<ButtonProps>  = ({
   }
   return (
     <button
-      className={`button button--${size || 'default'} ${inverse &&
-        'button--inverse'} ${danger && 'button--danger'}`}
+      className={`button button--${size || "default"} ${
+        inverse ? "button--inverse" : ""
+      } ${danger ? "button--danger" : ""}`}
       type={type}
       onClick={onClick}
       disabled={disabled}

@@ -8,8 +8,8 @@ interface InputProps {
   name?: string;
   type?: string;
   inputValue?: string;
-  onInput?: (x:any,y:any,z:any) => void;
-  onChange?:(x:any)=>void;
+  onInput?: (x: any, y: any, z: any) => void;
+  onChange?: (x: any) => void;
   placeholder?: string;
   className?: string;
   style?: object;
@@ -57,12 +57,12 @@ export const Input: React.FC<InputProps> = ({
   validators,
   valid,
   inputValid,
-  onChange
+  onChange,
 }) => {
   let elementType;
   const [inputState, dispatch] = React.useReducer(inputReducer, {
-    value: inputValue||"",
-    isValid: inputValid||false,
+    value: inputValue || "",
+    isValid: inputValid || false,
     isTouched: false,
   });
   const changeHandler = (
@@ -75,17 +75,17 @@ export const Input: React.FC<InputProps> = ({
       value: event.target.value,
       validators,
     });
-    console.log("inputState", inputState);
+    console.log("inputState", label, type, inputState);
   };
   const touchHandler = () => {
     dispatch({
       type: "TOUCH",
     });
   };
-  const {value,isValid}=inputState
-  React.useEffect(()=>{
-    onInput?.(id,value,isValid)
-  },[id,onInput,value,isValid])
+  const { value, isValid } = inputState;
+  React.useEffect(() => {
+    onInput?.(id, value, isValid);
+  }, [id, onInput, value, isValid]);
   if (element === "input") {
     elementType = (
       <input
@@ -105,7 +105,7 @@ export const Input: React.FC<InputProps> = ({
       <textarea
         //  name={name}
         value={inputState.value}
-        onChange={changeHandler ||onChange}
+        onChange={changeHandler || onChange}
         onBlur={touchHandler}
         placeholder={placeholder}
         //  className={className}
@@ -120,13 +120,15 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div
       className={`form-control 
-     ${(!inputState.isValid && inputState.isTouched )?
-       "form-control--invalid":''}`
-      }
+     ${
+       !inputState.isValid && inputState.isTouched
+         ? "form-control--invalid"
+         : ""
+     }`}
     >
       <label htmlFor={id}>{label}</label>
       {elementType}
-      {(!inputState.isValid && inputState.isTouched) && <p>{errorText}</p>}
+      {!inputState.isValid && inputState.isTouched && <p>{errorText}</p>}
     </div>
   );
 };

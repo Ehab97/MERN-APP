@@ -18,7 +18,7 @@ export const UsersItem: React.FC<User> = ({
         <NavLink to={`/${id}/places`}>
           <div className="user-item__image">
             <Avatar
-              image={image}
+              image={`http://localhost:5000/${image}`}
               alt={name}
               width={"50px"}
               className=""

@@ -16,6 +16,7 @@ import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
 import ErrorModal from "../shared/UIElements/ErrorModal";
 import axios from "axios";
 import { useHttpClient } from "../../app/hooks/useHttpClient";
+import { ImageUpload } from "../shared/form/ImageUpload";
 
 export const Auth: React.FC = () => {
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
@@ -40,10 +41,13 @@ export const Auth: React.FC = () => {
   const authSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const name = formState.inputs?.name?.value;
+    const image = formState.inputs?.image?.value;
     const email = formState.inputs.email.value;
     const password = formState.inputs.password.value;
     let data, res;
 
+    console.log(formState.inputs);
+    // return;
     if (isLoginMode) {
       try {
         res = await sendRequest(
@@ -56,6 +60,7 @@ export const Auth: React.FC = () => {
           }
         );
         console.log(res);
+        auth.setUserId(res.data.user._id);
         auth.login();
         navigate("/");
       } catch (err) {
@@ -63,14 +68,15 @@ export const Auth: React.FC = () => {
       }
     } else {
       try {
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("name", name);
+        formData.append("password", password);
+        formData.append("image", image);
         res = await sendRequest(
           "http://localhost:5000/api/users/signup",
           "POST",
-          JSON.stringify({ name, email, password }),
-          {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          }
+          formData
         );
         console.log(res);
         auth.login();
@@ -89,6 +95,7 @@ export const Auth: React.FC = () => {
         {
           ...formState.inputs,
           name: undefined,
+          image: undefined,
         },
         formState.inputs.email.isValid && formState.inputs.password.isValid
       );
@@ -98,6 +105,10 @@ export const Auth: React.FC = () => {
           ...formState.inputs,
           name: {
             value: "",
+            isValid: false,
+          },
+          image: {
+            value: null,
             isValid: false,
           },
         },
@@ -139,21 +150,24 @@ export const Auth: React.FC = () => {
             validators={[VALIDATOR_EMAIL()]}
             errorText="Please Enter A valid Email"
             onInput={inputHandler}
-            //   inputValue={formState.inputs.title.value}
-            //   inputValid={formState.inputs.title.isValid}
           />
           <Input
             id="password"
             element="input"
             label="Password"
             type="password"
-            validators={[VALIDATOR_MINLENGTH(8)]}
-            errorText="Please Enter At lease 8 chars"
+            validators={[VALIDATOR_MINLENGTH(6)]}
+            errorText="Please Enter At lease 6 chars"
             onInput={inputHandler}
-            //   inputValue={formState.inputs.title.value}
-            //   inputValid={formState.inputs.title.isValid}
           />
-
+          {!isLoginMode && (
+            <ImageUpload
+              id={"image"}
+              center={true}
+              onInput={inputHandler}
+              errorText={"please Enter An image"}
+            />
+          )}
           <Button type="submit" disabled={!formState.isValid} inverse>
             {isLoginMode ? "Login" : "Sign Up"}
           </Button>

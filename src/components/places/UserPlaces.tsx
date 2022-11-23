@@ -1,54 +1,52 @@
-import React from 'react'
-import PlaceList from './PlaceList';
-import { Place } from './placesInterFace';
-import { useParams } from 'react-router-dom';
-import '../../styles/places.scss'
+import React, { useContext } from "react";
+import PlaceList from "./PlaceList";
+import { Place } from "./placesInterFace";
+import { useParams } from "react-router-dom";
+import { useHttpClient } from "../../app/hooks/useHttpClient";
+import "../../styles/places.scss";
+import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
+import ErrorModal from "../shared/UIElements/ErrorModal";
+import { AuthContext } from "../shared/context/auth.context";
 // interface Places{
 //     places:Place[];
 // }
 
-const places:Place[] = [
-  {
-    id: 'p1',
-    title: 'Empire State Building',
-    description: 'One of the most famous sky scrapers in the world!',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg',
-    address: '20 W 34th St, New York, NY 10001',
-    creatorId: 'u1',
-    coordinates: {
-      lat: '40.7484405',
-      lng: '-73.9878584'
-    }
-  },{
-    id: 'p2',
-    title: 'Empire State Building 2',
-    description: 'One of the most famous sky scrapers in the world! 2' ,
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg',
-    address: '20 W 34th St, New York, NY 10001',
-    creatorId: 'u2',
-    coordinates: {
-      lat: '40.7484405',
-      lng: '-73.9878584'
-    }
-  }
-]
-let userPlacesFiltered:Place[]|null|undefined=null;
-const UserPlaces:React.FC = () => {
-  let {userId}=useParams();
-  const [loading,setLoading]=React.useState(true)
+const UserPlaces: React.FC = () => {
+  let { userId } = useParams();
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const [places, setPlaces] = React.useState<Place[]>([]);
+  const auth = useContext(AuthContext);
   React.useEffect(() => {
-     userPlacesFiltered = places?.filter(place => place.creatorId !== userId);
-     setLoading(false) 
-    },[userId])
-    if(loading){
-      return <p>Loading...</p>
+    (async () => {
+      try {
+        let res: any = await sendRequest(
+          `http://localhost:5000/api/places/user/${userId}`
+        );
+        setPlaces(res.data.places);
+        console.log(res);
+      } catch (e) {
+        console.log(e);
       }
+    })();
+  }, [sendRequest, userId]);
+  const onDeletePlaceHandler = (deletedID?: string) => {
+    setPlaces((prevPlace) =>
+      prevPlace.filter((place) => place._id !== deletedID)
+    );
+  };
+  const modalProps: any = {
+    error,
+    onClear: clearError,
+  };
+  return (
+    <>
+      <ErrorModal {...modalProps} />
+      {isLoading && <LoadingSpinner asOverlay={true} />}
+      {places && (
+        <PlaceList places={places} onDeletePlace={onDeletePlaceHandler} />
+      )}
+    </>
+  );
+};
 
-    return (
-      <>
-      {userPlacesFiltered&&<PlaceList places={userPlacesFiltered}/>}
-      </>
-  )
-}
-
-export default UserPlaces
+export default UserPlaces;

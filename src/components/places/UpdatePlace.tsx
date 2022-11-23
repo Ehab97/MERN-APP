@@ -1,124 +1,180 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Input } from "../shared/UIElements/Input";
 import { Place } from "./placesInterFace";
-import { VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from "../../utlis/validations/validator";
+import {
+  VALIDATOR_MINLENGTH,
+  VALIDATOR_REQUIRE,
+} from "../../utlis/validations/validator";
 import Button from "../shared/UIElements/Button";
 import { useForm } from "../../app/hooks/useForm";
 
 import "../../styles/places.scss";
 import Card from "../shared/UIElements/Card";
+import { useHttpClient } from "../../app/hooks/useHttpClient";
+import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
+import { AuthContext } from "../shared/context/auth.context";
+import ErrorModal from "../shared/UIElements/ErrorModal";
 
-const places: Place[] = [
-  {
-    id: "p1",
-    title: "Empire State Building",
-    description: "One of the most famous sky scrapers in the world!",
-    imageUrl:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
-    address: "20 W 34th St, New York, NY 10001",
-    creatorId: "u1",
-    coordinates: {
-      lat: "40.7484405",
-      lng: "-73.9878584",
-    },
-  },
-  {
-    id: "p2",
-    title: "Empire State Building 2",
-    description: "One of the most famous sky scrapers in the world! 2",
-    imageUrl:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
-    address: "20 W 34th St, New York, NY 10001",
-    creatorId: "u2",
-    coordinates: {
-      lat: "40.7484405",
-      lng: "-73.9878584",
-    },
-  },
-];
 const UpdatePlace: React.FC = () => {
-  const [loading,setLoading]=React.useState(true)
   const { placeId } = useParams();
+  const auth = useContext(AuthContext);
+  const place = auth.places.find((p) => p._id === placeId);
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const navigate = useNavigate();
   const [formState, inputHandler, setFormData] = useForm(
     {
       title: {
-        value: "",
+        value: place?.title,
         isValid: false,
       },
       description: {
-        value: "",
+        value: place?.description,
+        isValid: false,
+      },
+      address: {
+        value: place?.address,
+        isValid: place ? true : false,
+      },
+      image: {
+        value: place?.image,
         isValid: false,
       },
     },
     false
   );
-  const place = places.find((p) => p.id === placeId);
   React.useEffect(() => {
-     if(place){
-      setFormData({
-        title: {
-          value: place?.title || "",
-          isValid: place ? true : false,
+    console.log(place);
+    if (place) {
+      setFormData(
+        {
+          title: {
+            value: place.title,
+            isValid: place ? true : false,
+          },
+          description: {
+            value: place.description,
+            isValid: place ? true : false,
+          },
+          address: {
+            value: place.address,
+            isValid: place ? true : false,
+          },
+          image: {
+            value: place?.image,
+            isValid: false,
+          },
         },
-        description: {
-          value:place?.description || "",
-          isValid: place ? true : false,
-        },
-      },true)
-      setLoading(false)
-     }
-  },[setFormData,place])
-  const placeSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("formState", formState); //send this to back end
-  };
+        true
+      );
+    }
+  }, [setFormData, place]);
 
-  if(loading) {
-    return (<div className="center">
-      <Card>
-        <h2>Loading...</h2>
-      </Card>
-    </div>)
-  }
-  if(!place) {
-    return (<div className="center">
-      <Card>
-        <h2 className="text-xl">Place not found</h2>
-      </Card>
-      </div>)
-  }
+  const placeSubmitHandler = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    let title = formState.inputs.title.value;
+    let description = formState.inputs.description.value;
+    let imageUrl = formState.inputs.image.value;
+    let address = formState.inputs.address.value;
+    console.log("formState", formState); //send this to back end
+    try {
+      let res: any = await sendRequest(
+        `http://localhost:5000/api/places/${placeId}`,
+        "PATCH",
+        JSON.stringify({ title, description, address }),
+        {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        }
+      );
+      console.log(res);
+      navigate(`/${auth.userId}/places`);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  const modalProps: any = {
+    error,
+    onClear: clearError,
+  };
+  if (isLoading) {
     return (
-        <form className="place-form" onSubmit={placeSubmitHandler}>
-          <Input
-            id="title"
-            element="input"
-            label="Title"
-            validators={[VALIDATOR_REQUIRE()]}
-            errorText="Please Enter A valid title"
-            onInput={inputHandler}
-            inputValue={formState.inputs.title.value}
-            inputValid={formState.inputs.title.isValid}
-            valid={true}
-          />
-       
-          <Input
-            id="description"
-            element="textarea"
-            label="Description"
-            validators={[VALIDATOR_MINLENGTH(5)]}
-            errorText="Please Enter A valid description at least 5 chars"
-            onInput={inputHandler}
-            inputValue={formState.inputs.description.value}
-            inputValid={formState.inputs.description.isValid}
-            valid={true}
-          />
-          <Button type="submit" disabled={!formState.isValid} inverse={true}>
-            Update Place
-          </Button>
-        </form>
-      )
-  
+      <div className="center">
+        <Card>
+          <LoadingSpinner asOverlay={true} />
+        </Card>
+      </div>
+    );
+  }
+  if (!place) {
+    return (
+      <div className="center">
+        <Card>
+          <h2 className="text-xl">Place not found</h2>
+        </Card>
+      </div>
+    );
+  }
+  return (
+    <>
+      <ErrorModal {...modalProps} />
+      <form className="place-form" onSubmit={placeSubmitHandler}>
+        <Input
+          id="title"
+          element="input"
+          label="Title"
+          validators={[VALIDATOR_REQUIRE()]}
+          errorText="Please Enter A valid title"
+          onInput={inputHandler}
+          inputValue={formState.inputs.title.value}
+          inputValid={formState.inputs.title.isValid}
+          valid={true}
+        />
+
+        <Input
+          id="description"
+          element="textarea"
+          label="Description"
+          validators={[VALIDATOR_MINLENGTH(5)]}
+          errorText="Please Enter A valid description at least 5 chars"
+          onInput={inputHandler}
+          inputValue={formState.inputs.description.value}
+          inputValid={formState.inputs.description.isValid}
+          valid={true}
+        />
+
+        <Input
+          id="address"
+          element="textarea"
+          label="Address"
+          validators={[VALIDATOR_MINLENGTH(5)]}
+          errorText="Please Enter A valid description at least 5 chars"
+          onInput={inputHandler}
+          inputValue={formState.inputs.address.value}
+          inputValid={formState.inputs.address.isValid}
+          valid={true}
+        />
+
+        {/*<Input*/}
+        {/*  id="imageUrl"*/}
+        {/*  element="textarea"*/}
+        {/*  label="Image"*/}
+        {/*  validators={[VALIDATOR_MINLENGTH(10)]}*/}
+        {/*  errorText="Please Enter A valid description at least 10 chars"*/}
+        {/*  onInput={inputHandler}*/}
+        {/*  inputValue={formState.inputs.image.value}*/}
+        {/*  inputValid={formState.inputs.image.isValid}*/}
+        {/*  valid={true}*/}
+        {/*/>*/}
+
+        <Button type="submit" disabled={!formState.isValid} inverse={true}>
+          Update Place
+        </Button>
+      </form>
+    </>
+  );
 };
 
 export default UpdatePlace;

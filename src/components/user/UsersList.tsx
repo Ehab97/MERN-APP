@@ -21,7 +21,7 @@ export const UsersList: React.FC<Users> = ({ users }) => {
             return (
               <UsersItem
                 name={user.name}
-                id={user.id}
+                id={user._id}
                 image={user.image}
                 places={user.places}
                 email={user.email}
