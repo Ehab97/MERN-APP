@@ -7,12 +7,14 @@ const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const place_controller_1 = require("../controller/place-controller");
 const file_upload_1 = __importDefault(require("../middleware/file-upload"));
+const check_auth_1 = require("../middleware/check-auth");
 //define routes
 const router = (0, express_1.Router)();
 //get place with id
 router.get('/:placeId', place_controller_1.getPlaceById);
 //get places by user id
 router.get('/user/:userId', place_controller_1.getPlacesByUserId);
+router.use(check_auth_1.checkAuth);
 //patch place
 router.patch('/:placeId', [
     (0, express_validator_1.check)('title').not().isEmpty(),

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { check } from 'express-validator'
 import { getPlaceById, getPlacesByUserId, createNewPlace, deletePlaceById, getAllPlaces, updatePlaceById } from '../controller/place-controller';
 import fileUpload from '../middleware/file-upload';
+import { checkAuth } from '../middleware/check-auth';
 
 
 
@@ -12,6 +13,8 @@ const router = Router();
 router.get('/:placeId', getPlaceById);
 //get places by user id
 router.get('/user/:userId', getPlacesByUserId);
+
+router.use(checkAuth);
 //patch place
 router.patch('/:placeId',
     [

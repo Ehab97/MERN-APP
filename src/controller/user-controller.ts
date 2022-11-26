@@ -5,6 +5,8 @@ import HttpError from './../models/http-error';
 import UserModel from '../models/user-schema';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import PlaceModel from '../models/place-schema';
+import { Place } from '../models/place';
 
 const getAllUsers = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
@@ -81,9 +83,10 @@ const userSignup = async (req: express.Request, res: express.Response, next: exp
             'supersecret_dont_share',
             { expiresIn: '1h' }
         )
+        console.log('user', user, token)
         res.status(201).json({
             message: "Signed Up", status: 'success',
-            data: { user: user.toObject({ getters: true }), token }
+            data: { user: user, token }
         });
 
     } catch (e) {
@@ -109,21 +112,22 @@ const userLogin = async (req: express.Request, res: express.Response, next: expr
     } catch (e) {
         return next(new HttpError('Could not login, please check your credentials and try again.', 500));
     }
+    console.log(isValidPassword, password, isUserExists.password)
     if (!isValidPassword) {
-        return next(new HttpError('Invalid credentials, could not log you in.', 401));
+        return next(new HttpError('Invalid credentials, could not log you in.', 403));
     }
     let user;
     try {
         //get user
-        user = await UserModel.findOne({ email: email, password: password });
+        user = await UserModel.findOne({ email: email});
         console.log('user', user, 'email', email, 'password', password);
         if (!user) {
             return next(new HttpError('Invalid credentials', 422));
         }
-        res.status(200).json({
-            message: 'Logged In ', status: 'success',
-            data: { user: user.toObject({ getters: true }) }
-        });
+        // res.status(200).json({
+        //     message: 'Logged In ', status: 'success',
+        //     data: { user: user.toObject({ getters: true }) }
+        // });
     } catch (err) {
         console.log(err);
         return next(new HttpError('Could not find user', 500));
@@ -145,4 +149,27 @@ const userLogin = async (req: express.Request, res: express.Response, next: expr
     }
 };
 
-export { getAllUsers, getUserById, userSignup, userLogin };
+const getPlacesUserById = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const params = req.params as RequestParams;
+    const userId = params.userId;
+
+    let isUserExists = await UserModel.findOne({ _id: userId });
+    if (!isUserExists) {
+        return next(new HttpError('User is not  exists', 404));
+    }
+
+    let places: Place[];
+
+    try {
+        places = await PlaceModel.find({ creator: userId });
+        console.log('places', places);
+    } catch (e) {
+        return next(new HttpError('Could not find places', 500));
+    }
+    res.status(200).json({
+        status: 'success',
+        data: { places }
+    });
+}
+
+export { getAllUsers, getUserById, userSignup, userLogin, getPlacesUserById };

@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userLogin = exports.userSignup = exports.getUserById = exports.getAllUsers = void 0;
+exports.getPlacesUserById = exports.userLogin = exports.userSignup = exports.getUserById = exports.getAllUsers = void 0;
 const express_validator_1 = require("express-validator");
 const http_error_1 = __importDefault(require("./../models/http-error"));
 const user_schema_1 = __importDefault(require("../models/user-schema"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const place_schema_1 = __importDefault(require("../models/place-schema"));
 const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield user_schema_1.default.find({}, '-password');
@@ -89,9 +90,10 @@ const userSignup = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     let token;
     try {
         token = yield jsonwebtoken_1.default.sign({ userId: user.id, email: user.email }, 'supersecret_dont_share', { expiresIn: '1h' });
+        console.log('user', user, token);
         res.status(201).json({
             message: "Signed Up", status: 'success',
-            data: { user: user.toObject({ getters: true }), token }
+            data: { user: user, token }
         });
     }
     catch (e) {
@@ -118,21 +120,22 @@ const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     catch (e) {
         return next(new http_error_1.default('Could not login, please check your credentials and try again.', 500));
     }
+    console.log(isValidPassword, password, isUserExists.password);
     if (!isValidPassword) {
-        return next(new http_error_1.default('Invalid credentials, could not log you in.', 401));
+        return next(new http_error_1.default('Invalid credentials, could not log you in.', 403));
     }
     let user;
     try {
         //get user
-        user = yield user_schema_1.default.findOne({ email: email, password: password });
+        user = yield user_schema_1.default.findOne({ email: email });
         console.log('user', user, 'email', email, 'password', password);
         if (!user) {
             return next(new http_error_1.default('Invalid credentials', 422));
         }
-        res.status(200).json({
-            message: 'Logged In ', status: 'success',
-            data: { user: user.toObject({ getters: true }) }
-        });
+        // res.status(200).json({
+        //     message: 'Logged In ', status: 'success',
+        //     data: { user: user.toObject({ getters: true }) }
+        // });
     }
     catch (err) {
         console.log(err);
@@ -151,3 +154,24 @@ const userLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.userLogin = userLogin;
+const getPlacesUserById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const params = req.params;
+    const userId = params.userId;
+    let isUserExists = yield user_schema_1.default.findOne({ _id: userId });
+    if (!isUserExists) {
+        return next(new http_error_1.default('User is not  exists', 404));
+    }
+    let places;
+    try {
+        places = yield place_schema_1.default.find({ creator: userId });
+        console.log('places', places);
+    }
+    catch (e) {
+        return next(new http_error_1.default('Could not find places', 500));
+    }
+    res.status(200).json({
+        status: 'success',
+        data: { places }
+    });
+});
+exports.getPlacesUserById = getPlacesUserById;

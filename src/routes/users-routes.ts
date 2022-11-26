@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { check } from 'express-validator'
-import { getAllUsers, getUserById, userSignup, userLogin } from '../controller/user-controller';
+import { getAllUsers, getUserById, userSignup, userLogin ,getPlacesUserById} from '../controller/user-controller';
+import { checkAuth } from '../middleware/check-auth';
 import fileUpload from '../middleware/file-upload';
 
 
@@ -9,6 +10,9 @@ const router = Router();
 
 //get single user with id
 router.get('/:userId', getUserById);
+// router.get('/user/:userId', getPlacesUserById);
+
+
 //user signup
 router.post('/signup',
     fileUpload.single('image'),

@@ -19,7 +19,7 @@ function getCoordsForAddress(address) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield axios_1.default.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${API_KEY}`);
-        const data = response.data;
+        const data = response === null || response === void 0 ? void 0 : response.data;
         let error;
         if (!data || data.status === 'ZERO_RESULTS') {
             error = new http_error_1.default('Could not find location for the specified address', 422);

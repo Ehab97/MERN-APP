@@ -16,7 +16,6 @@ exports.getAllPlaces = exports.updatePlaceById = exports.deletePlaceById = expor
 const crypto_1 = __importDefault(require("crypto"));
 const express_validator_1 = require("express-validator");
 const http_error_1 = __importDefault(require("../models/http-error"));
-const location_1 = __importDefault(require("../utils/location"));
 const place_schema_1 = __importDefault(require("../models/place-schema"));
 const user_schema_1 = __importDefault(require("../models/user-schema"));
 const fs_1 = __importDefault(require("fs"));
@@ -68,7 +67,9 @@ const createNewPlace = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     console.log(body);
     let coordinates;
     try {
-        coordinates = yield (0, location_1.default)(address);
+        //in case we want to use google api
+        // coordinates = await getCoordsForAddress(address);
+        coordinates = { lat: 40.7484474, lng: -73.9871516 };
     }
     catch (error) {
         console.log(error);
@@ -118,7 +119,8 @@ const createNewPlace = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     });
 });
 exports.createNewPlace = createNewPlace;
-const updatePlaceById = (req, res, next) => {
+const updatePlaceById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
         console.log(errors);
@@ -129,20 +131,35 @@ const updatePlaceById = (req, res, next) => {
     const body = req.body;
     const { title, description } = body;
     console.log(body);
-    place_schema_1.default
-        .updateOne({ _id: placeId }, { title, description })
-        .then((result) => {
-        res.status(200).json({ status: 'success', data: {
+    let place;
+    try {
+        place = yield place_schema_1.default.findById(placeId);
+    }
+    catch (err) {
+        let error = new http_error_1.default('Could not find place', 500);
+        return next(error);
+    }
+    console.log('userData', req.body.userData);
+    if (((_c = place === null || place === void 0 ? void 0 : place.creator) === null || _c === void 0 ? void 0 : _c.toString()) != req.body.userData.userId) {
+        let error = new http_error_1.default('You are not Allowed to edit this place', 401);
+        return next(error);
+    }
+    try {
+        const result = yield place_schema_1.default.updateOne({ _id: placeId }, { title, description });
+        res.status(200).json({
+            status: 'success', data: {
                 result
-            } });
-    })
-        .catch((err) => {
+            }
+        });
+    }
+    catch (err) {
         let error = new http_error_1.default('Could not update place', 500);
         return next(error);
-    });
-};
+    }
+});
 exports.updatePlaceById = updatePlaceById;
 const deletePlaceById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
     const params = req.params;
     const placeId = params.placeId;
     let place;
@@ -150,6 +167,10 @@ const deletePlaceById = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     place = yield place_schema_1.default.findById(placeId);
     if (!place) {
         let error = new http_error_1.default('Could not find place', 500);
+        return next(error);
+    }
+    if (((_d = place === null || place === void 0 ? void 0 : place.creator) === null || _d === void 0 ? void 0 : _d.toString()) != req.body.userData.userId) {
+        let error = new http_error_1.default('You are not Allowed to delete this place', 401);
         return next(error);
     }
     const imagePath = place.image;

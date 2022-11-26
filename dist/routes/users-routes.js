@@ -11,6 +11,7 @@ const file_upload_1 = __importDefault(require("../middleware/file-upload"));
 const router = (0, express_1.Router)();
 //get single user with id
 router.get('/:userId', user_controller_1.getUserById);
+// router.get('/user/:userId', getPlacesUserById);
 //user signup
 router.post('/signup', file_upload_1.default.single('image'), [
     (0, express_validator_1.check)('name').isLength({ min: 3 }),
