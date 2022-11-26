@@ -69,7 +69,7 @@ const UpdatePlace: React.FC = () => {
       );
     }
   }, [setFormData, place]);
-
+  console.log(useParams());
   const placeSubmitHandler = async (
     event: React.FormEvent<HTMLFormElement>
   ) => {
@@ -87,6 +87,7 @@ const UpdatePlace: React.FC = () => {
         {
           Accept: "application/json",
           "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
         }
       );
       console.log(res);

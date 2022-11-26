@@ -10,13 +10,13 @@ import Card from "../shared/UIElements/Card";
 import { Input } from "../shared/UIElements/Input";
 import { AuthContext } from "../shared/context/auth.context";
 import { useNavigate } from "react-router-dom";
-import client from "../../utlis/api";
-import "../../styles/users-list.scss";
 import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
 import ErrorModal from "../shared/UIElements/ErrorModal";
-import axios from "axios";
 import { useHttpClient } from "../../app/hooks/useHttpClient";
 import { ImageUpload } from "../shared/form/ImageUpload";
+import jwt_decode from "jwt-decode";
+
+import "../../styles/users-list.scss";
 
 export const Auth: React.FC = () => {
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
@@ -60,8 +60,12 @@ export const Auth: React.FC = () => {
           }
         );
         console.log(res);
-        auth.setUserId(res.data.user._id);
         auth.login();
+        let decoded: any = (await res.data.token)
+          ? jwt_decode(res.data.token)
+          : "";
+        auth.setUserId(res.data.user._id, res.data.token);
+
         navigate("/");
       } catch (err) {
         console.log(err);
@@ -79,6 +83,10 @@ export const Auth: React.FC = () => {
           formData
         );
         console.log(res);
+        let decoded: any = (await res.data.token)
+          ? jwt_decode(res.data.token)
+          : "";
+        auth.setUserId(res.data.user._id, res.data.token);
         auth.login();
         navigate("/");
       } catch (e) {

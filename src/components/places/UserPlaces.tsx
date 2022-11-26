@@ -20,7 +20,14 @@ const UserPlaces: React.FC = () => {
     (async () => {
       try {
         let res: any = await sendRequest(
-          `http://localhost:5000/api/places/user/${userId}`
+          `http://localhost:5000/api/places/user/${userId}`,
+          "GET",
+          null,
+          {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${auth.token}`,
+          }
         );
         setPlaces(res.data.places);
         console.log(res);

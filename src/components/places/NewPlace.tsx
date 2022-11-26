@@ -55,12 +55,15 @@ export const NewPlace: React.FC = () => {
     formData.append("description", description);
     formData.append("image", image);
     formData.append("creator", creator);
-    console.log(title, address, description, image, creator, formData);
+    console.log(title, address, description, image, creator, formData, auth);
     try {
       let res: any = await sendRequest(
         "http://localhost:5000/api/places",
         "POST",
-        formData
+        formData,
+        {
+          Authorization: `Bearer ${auth.token}`,
+        }
       );
       console.log(res);
       navigate("/");

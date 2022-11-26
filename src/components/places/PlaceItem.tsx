@@ -68,7 +68,11 @@ const PlaceItem: React.FC<PlaceItemProps> = ({
     try {
       let res: any = await sendRequest(
         `http://localhost:5000/api/places/${id}`,
-        "DELETE"
+        "DELETE",
+        null,
+        {
+          Authorization: `Bearer ${auth.token}`,
+        }
       );
       console.log(res);
       onDelete(id);
