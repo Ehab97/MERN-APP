@@ -4,6 +4,7 @@ import Avatar from "../shared/UIElements/Avatar";
 import { User } from "./userInterfaces";
 import { NavLink } from "react-router-dom";
 import Card from "../shared/UIElements/Card";
+import { basURLImage } from "../../utlis/api";
 
 export const UsersItem: React.FC<User> = ({
   name,
@@ -18,7 +19,7 @@ export const UsersItem: React.FC<User> = ({
         <NavLink to={`/${id}/places`}>
           <div className="user-item__image">
             <Avatar
-              image={`http://localhost:5000/${image}`}
+              image={`${basURLImage}${image}`}
               alt={name}
               width={"50px"}
               className=""

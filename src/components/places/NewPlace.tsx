@@ -57,14 +57,9 @@ export const NewPlace: React.FC = () => {
     formData.append("creator", creator);
     console.log(title, address, description, image, creator, formData, auth);
     try {
-      let res: any = await sendRequest(
-        "http://localhost:5000/api/places",
-        "POST",
-        formData,
-        {
-          Authorization: `Bearer ${auth.token}`,
-        }
-      );
+      let res: any = await sendRequest("places", "POST", formData, {
+        Authorization: `Bearer ${auth.token}`,
+      });
       console.log(res);
       navigate("/");
     } catch (e) {

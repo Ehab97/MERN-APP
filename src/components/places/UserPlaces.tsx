@@ -3,14 +3,11 @@ import PlaceList from "./PlaceList";
 import { Place } from "./placesInterFace";
 import { useParams } from "react-router-dom";
 import { useHttpClient } from "../../app/hooks/useHttpClient";
-import "../../styles/places.scss";
 import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
 import ErrorModal from "../shared/UIElements/ErrorModal";
 import { AuthContext } from "../shared/context/auth.context";
-// interface Places{
-//     places:Place[];
-// }
 
+import "../../styles/places.scss";
 const UserPlaces: React.FC = () => {
   let { userId } = useParams();
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
@@ -19,16 +16,11 @@ const UserPlaces: React.FC = () => {
   React.useEffect(() => {
     (async () => {
       try {
-        let res: any = await sendRequest(
-          `http://localhost:5000/api/places/user/${userId}`,
-          "GET",
-          null,
-          {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.token}`,
-          }
-        );
+        let res: any = await sendRequest(`places/user/${userId}`, "GET", null, {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        });
         setPlaces(res.data.places);
         console.log(res);
       } catch (e) {

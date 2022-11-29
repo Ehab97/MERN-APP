@@ -1,13 +1,17 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import UserView from "../pages/Users";
-import Places from "../pages/Places";
+// import Places from "../pages/Places";
+// import UserPlacesView from "../pages/UserPlacesView";
+// import UpdatePlaceView from "../pages/UpdatePlaceView";
 
-import UserPlacesView from "../pages/UserPlacesView";
-
-import UpdatePlaceView from "../pages/UpdatePlaceView";
 import { AuthView } from "../pages/AuthView";
 import { AuthContext } from "../components/shared/context/auth.context";
+import LoadingSpinner from "../components/shared/UIElements/LoadingSpinner";
+
+const UserPlacesView = React.lazy(() => import("../pages/UserPlacesView"));
+const Places = React.lazy(() => import("../pages/Places"));
+const UpdatePlaceView = React.lazy(() => import("../pages/UpdatePlaceView"));
 
 interface RouteType {
   path: string;
@@ -36,6 +40,16 @@ const Routing: React.FC = () => {
       <Route path="*" element={<AuthView />} />
     </Routes>
   );
-  return <>{token ? isAuthed() : notAuthed()}</>;
+  return (
+    <Suspense
+      fallback={
+        <div className={"center"}>
+          <LoadingSpinner asOverlay={true} />
+        </div>
+      }
+    >
+      {token ? isAuthed() : notAuthed()}
+    </Suspense>
+  );
 };
 export default Routing;

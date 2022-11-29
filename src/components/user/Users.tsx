@@ -13,7 +13,7 @@ export const Users: React.FC = () => {
   React.useEffect(() => {
     (async () => {
       try {
-        let res: any = await sendRequest("http://localhost:5000/api/users");
+        let res: any = await sendRequest("users");
 
         console.log(res);
 

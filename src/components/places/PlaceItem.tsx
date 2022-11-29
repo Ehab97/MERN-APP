@@ -4,12 +4,14 @@ import { Place } from "./placesInterFace";
 import Button from "../shared/UIElements/Button";
 import Modal from "../shared/UIElements/Modal";
 import { Map } from "../shared/map/Map";
-import "../../styles/places.scss";
 import { useHttpClient } from "../../app/hooks/useHttpClient";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../shared/context/auth.context";
 import ErrorModal from "../shared/UIElements/ErrorModal";
 import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
+import { basURLImage } from "../../utlis/api";
+
+import "../../styles/places.scss";
 
 interface PlaceItemProps extends Place {
   onDelete: (deletedID?: string) => void;
@@ -66,14 +68,9 @@ const PlaceItem: React.FC<PlaceItemProps> = ({
   };
   const deletePlace = async () => {
     try {
-      let res: any = await sendRequest(
-        `http://localhost:5000/api/places/${id}`,
-        "DELETE",
-        null,
-        {
-          Authorization: `Bearer ${auth.token}`,
-        }
-      );
+      let res: any = await sendRequest(`places/${id}`, "DELETE", null, {
+        Authorization: `Bearer ${auth.token}`,
+      });
       console.log(res);
       onDelete(id);
     } catch (e) {
@@ -100,7 +97,7 @@ const PlaceItem: React.FC<PlaceItemProps> = ({
         <Card className="place-item__content">
           {isLoading && <LoadingSpinner asOverlay={true} />}
           <div className="place-item__image">
-            <img src={`http://localhost:5000/${image}`} alt={title} />
+            <img src={`${basURLImage}${image}`} alt={title} />
           </div>
           <div className="place-item__info">
             <h2>{title}</h2>

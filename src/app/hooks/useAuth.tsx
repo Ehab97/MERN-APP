@@ -55,16 +55,11 @@ export const useAuth = () => {
 
     (async () => {
       try {
-        let res: any = await sendRequest(
-          "http://localhost:5000/api/places",
-          "GET",
-          null,
-          {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${currentToken}`,
-          }
-        );
+        let res: any = await sendRequest("places", "GET", null, {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        });
         console.log(res);
         let placesData = res.data.places as Place[];
         setPlaces(placesData);

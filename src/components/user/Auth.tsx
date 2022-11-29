@@ -51,7 +51,7 @@ export const Auth: React.FC = () => {
     if (isLoginMode) {
       try {
         res = await sendRequest(
-          "http://localhost:5000/api/users/login",
+          "users/login",
           "POST",
           JSON.stringify({ email, password }),
           {
@@ -77,11 +77,7 @@ export const Auth: React.FC = () => {
         formData.append("name", name);
         formData.append("password", password);
         formData.append("image", image);
-        res = await sendRequest(
-          "http://localhost:5000/api/users/signup",
-          "POST",
-          formData
-        );
+        res = await sendRequest("users/signup", "POST", formData);
         console.log(res);
         let decoded: any = (await res.data.token)
           ? jwt_decode(res.data.token)

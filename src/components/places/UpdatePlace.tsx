@@ -1,7 +1,6 @@
 import React, { useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Input } from "../shared/UIElements/Input";
-import { Place } from "./placesInterFace";
 import {
   VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE,
@@ -9,12 +8,13 @@ import {
 import Button from "../shared/UIElements/Button";
 import { useForm } from "../../app/hooks/useForm";
 
-import "../../styles/places.scss";
 import Card from "../shared/UIElements/Card";
 import { useHttpClient } from "../../app/hooks/useHttpClient";
 import LoadingSpinner from "../shared/UIElements/LoadingSpinner";
 import { AuthContext } from "../shared/context/auth.context";
 import ErrorModal from "../shared/UIElements/ErrorModal";
+
+import "../../styles/places.scss";
 
 const UpdatePlace: React.FC = () => {
   const { placeId } = useParams();
@@ -81,7 +81,7 @@ const UpdatePlace: React.FC = () => {
     console.log("formState", formState); //send this to back end
     try {
       let res: any = await sendRequest(
-        `http://localhost:5000/api/places/${placeId}`,
+        `places/${placeId}`,
         "PATCH",
         JSON.stringify({ title, description, address }),
         {

@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 
+import { baseURL_ } from "../../utlis/api";
+
 export const useHttpClient = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -10,8 +12,13 @@ export const useHttpClient = () => {
       setIsLoading(true);
       const httpAbortController = new AbortController();
       activeHttpRequests.current.push(httpAbortController);
+      console.log(
+        "process.env.REACT_APP_BACKEND_URL ",
+        process.env.REACT_APP_BACKEND_URL,
+        process.env.NODE_ENV
+      );
       try {
-        const response: any = await fetch(url, {
+        const response: any = await fetch(baseURL_ + url, {
           method,
           body,
           headers,
